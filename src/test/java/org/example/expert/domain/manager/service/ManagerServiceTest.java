@@ -42,7 +42,7 @@ class ManagerServiceTest {
     private ManagerService managerService;
 
     @Test
-    public void 일정_작성자는_본인을_담당ㅇ자로_등록할_수_없다() throws Exception {
+    public void 일정_작성자는_본인을_담당자로_등록할_수_없다() throws Exception {
         // given
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(1L);
 
@@ -147,6 +147,34 @@ class ManagerServiceTest {
     }
 
     @Test
+    void 매니저_저장할_때_일정_담당자가_유저아이디랑_다를_때() {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 일정을 만든 유저
+
+        AuthUser authUser2 = new AuthUser(2L, "a@a.com", UserRole.USER);
+        User user2 = User.fromAuthUser(authUser2);  // 일정을 만든 유저
+
+        long todoId = 1L;
+        Todo todo = new Todo("Test Title", "Test Contents", "Sunny", user2);
+
+        long managerUserId = 2L;
+        User managerUser = new User("b@b.com", "password", UserRole.USER);  // 매니저로 등록할 유저
+        ReflectionTestUtils.setField(managerUser, "id", managerUserId);
+
+        ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId); // request dto 생성
+
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
+        // when / then
+        InvalidRequestException ex = assertThrows(
+            InvalidRequestException.class,
+            () -> managerService.saveManager(authUser, todoId, managerSaveRequest));
+
+        assertEquals(ex.getMessage(), "담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
+    }
+
+    @Test
     public void 매니저_삭제_시_유저가_없을_때() throws Exception {
         // given
         long id = 1L;
@@ -191,6 +219,27 @@ class ManagerServiceTest {
         System.out.println(user2.getId());
         System.out.println(todo.getUser());
         System.out.println(todo.getUser().getId());
+        // when/then
+        InvalidRequestException ex = assertThrows(
+            InvalidRequestException.class, () -> managerService.deleteManager(user2.getId(), todoId,  0));
+        assertEquals(ex.getMessage(), "해당 일정을 만든 유저가 유효하지 않습니다.");
+    }
+
+    @Test
+    public void 매니저_삭제_시_유저아이디와_투두_작성자의_유효하지_않을_때() throws Exception {
+        // given
+        AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
+        User user = User.fromAuthUser(authUser);  // 일정을 만든 유저
+
+        long todoId = 1L;
+        Todo todo = new Todo("Test Title", "Test Contents", "Sunny", null);
+
+        User user2 = new User("b@b.com", "password", UserRole.USER);
+        ReflectionTestUtils.setField(user2, "id", 33L);
+
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
+        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+
         // when/then
         InvalidRequestException ex = assertThrows(
             InvalidRequestException.class, () -> managerService.deleteManager(user2.getId(), todoId,  0));

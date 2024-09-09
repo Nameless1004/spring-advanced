@@ -1,7 +1,9 @@
 package org.example.expert.domain.user.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -149,6 +151,18 @@ class UserServiceTest {
         userService.changePassword(1L, req);
 
         assertEquals(user.getPassword(), newPassword);
+    }
+
+    @Test
+    public void 비밀번호_유효성_검사_테스트_성공(){
+        boolean b = userService.validatePassword("1asdfADSA!@#");
+        assertTrue(b);
+    }
+
+    @Test
+    public void 비밀번호_유효성_검사_테스트_실패(){
+        boolean b = userService.validatePassword("111111");
+        assertFalse(b);
     }
 
 }

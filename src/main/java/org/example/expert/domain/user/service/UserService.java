@@ -43,7 +43,7 @@ public class UserService {
         user.changePassword(passwordEncoder.encode(userChangePasswordRequest.getNewPassword()));
     }
 
-    private boolean validatePassword(String password) {
+    public boolean validatePassword(String password) {
         return password.length() >= 8 && password.matches(".*\\d.*") && password.matches(".*[A-Z].*");
     }
 }

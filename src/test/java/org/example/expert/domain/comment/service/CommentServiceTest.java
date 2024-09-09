@@ -56,6 +56,27 @@ class CommentServiceTest {
     }
 
     @Test
+    public void 할일에_해당하는_담당자가_아니면_댓글을_달_수_없다() throws Exception {
+        // given
+        AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
+        AuthUser authUser2 = new AuthUser(2L, "email", UserRole.USER);
+        CommentSaveRequest request = new CommentSaveRequest("contents");
+        User user = User.fromAuthUser(authUser);
+        User user2 = User.fromAuthUser(authUser2);
+        Todo todo = new Todo("title", "contents", "weather", user);
+
+        // when
+        given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
+        InvalidRequestException ex = assertThrows(
+            InvalidRequestException.class, () -> {
+                commentService.saveComment(authUser2, 1L, request);
+            });
+
+        // then
+        assertEquals(ex.getMessage(), "Todo user id mismatch");
+    }
+
+    @Test
     public void comment를_정상적으로_등록한다() {
         // given
         long todoId = 1;

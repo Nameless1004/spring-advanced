@@ -28,14 +28,14 @@ public class TodoController {
 
     @GetMapping("/todos")
     public ResponseEntity<Page<TodoResponse>> getTodos(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(name ="page", defaultValue = "1") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(todoService.getTodos(page, size));
     }
 
     @GetMapping("/todos/{todoId}")
-    public ResponseEntity<TodoResponse> getTodo(@PathVariable long todoId) {
+    public ResponseEntity<TodoResponse> getTodo(@PathVariable("todoId") long todoId) {
         return ResponseEntity.ok(todoService.getTodo(todoId));
     }
 }
